@@ -94,7 +94,8 @@ data:
 EOL
 
                         # Apply the config to Redis
-                        REDIS_PASSWORD=$(kubectl get secret -n redis redis-secret -o jsonpath='{.data.redis-password}' | base64 --decode)
+                        REDIS_PASSWORD=$(kubectl get secret -n redis redis-secret -o jsonpath='{.data.redis-password}' | base64 -d 2>/dev/null || base64 --decode)
+
                         
                         # Mount the config only if needed
                         # This would normally be handled through helm values, but shown here for demonstration

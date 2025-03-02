@@ -113,7 +113,7 @@ EOL
                         kubectl rollout status statefulset/redis-master -n redis || true
                         
                         # Verify Redis connection without exposing the password
-                        REDIS_PASSWORD=$(kubectl get secret -n redis redis-secret -o jsonpath='{.data.redis-password}' | base64 --decode)
+                        REDIS_PASSWORD=$(kubectl get secret -n redis redis-secret -o jsonpath='{.data.redis-password}' | base64 -d 2>/dev/null || base64 --decode)
                         
                         # Test connection (install redis-cli first)
                         kubectl run -n redis redis-client --rm -it --restart=Never --image=bitnami/redis -- redis-cli -h redis-master -a "$REDIS_PASSWORD" PING || true

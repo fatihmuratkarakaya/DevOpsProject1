@@ -15,18 +15,6 @@ POSTGRES_PORT=30001
 POSTGRES_USER="postgres"
 POSTGRES_DB="postgres"
 
-# Check if PostgreSQL client is installed
-if ! command -v psql &> /dev/null; then
-    echo -e "${YELLOW}PostgreSQL client not found. Installing...${NC}"
-    sudo apt-get update && sudo apt-get install -y postgresql-client
-    
-    if ! command -v psql &> /dev/null; then
-        echo -e "${RED}Failed to install PostgreSQL client. Please install it manually:${NC}"
-        echo "sudo apt-get install postgresql-client"
-        exit 1
-    fi
-fi
-
 # Get base64 decode option that works on this system
 BASE64_DECODE_OPT=$(base64 --help 2>&1 | grep -q "\-\-decode" && echo "--decode" || echo "-d")
 
@@ -49,7 +37,7 @@ echo "  Host: $NODE_IP"
 echo "  Port: $POSTGRES_PORT"
 echo "  User: $POSTGRES_USER"
 echo "  Database: $POSTGRES_DB"
-echo "  Password: ********"
+echo "  Password: ********" # Don't print the actual password
 echo "============================"
 
 # Check if PostgreSQL is running

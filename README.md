@@ -40,8 +40,9 @@ The system architecture consists of:
    ```bash
    ./scripts/setup.sh
    ```
+4. Deploy PostgreSQL and Redis via Jenkins pipelines
 
-4. Access services:
+5. Access services:
    - Jenkins: http://localhost:30000 (credentials provided after setup)
    - PostgreSQL: localhost:30001
    - Redis: localhost:30002

@@ -31,8 +31,10 @@ The system architecture consists of:
    ```bash
    ./scripts/install_dependencies.sh
    ```
-!!! warning "Warning"
-    Do not forget to log-out - log-in before continue
+> **Warning**
+>
+> Do not forget to log out and log in before continuing.
+
 
 3. Run the setup script:
    ```bash

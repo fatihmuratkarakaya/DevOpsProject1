@@ -126,7 +126,7 @@ kubernetes-devops/
 - **Port conflicts**: If ports 30000-30002 are already in use, modify the port mappings in terraform/main.tf
 - **Resource limitations**: Ensure your system has sufficient resources (min 4GB RAM, 2 CPU cores)
 - **Connection issues**: Verify that Docker is running and KIND ports are correctly mapped
-- **Docker permissions: If you encounter permission issues with Docker, add your user to the Docker group by running sudo usermod -aG docker $USER (and then log out and back in)
+- **Docker permissions**: If you encounter permission issues with Docker, add your user to the Docker group by running sudo usermod -aG docker $USER (and then log out and back in)
 ### Logs
 
 - **Kubernetes**: `kubectl logs -n <namespace> <pod-name>`

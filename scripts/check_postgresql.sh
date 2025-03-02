@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Check if psql is installed; if not, install the PostgreSQL client
+if ! command -v psql &> /dev/null; then
+  echo "psql not found. Installing postgresql-client..."
+  sudo apt-get update
+  sudo apt-get install -y postgresql-client
+fi
+
 # Color for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'

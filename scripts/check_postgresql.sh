@@ -15,8 +15,20 @@ POSTGRES_PORT=30001
 POSTGRES_USER="postgres"
 POSTGRES_DB="postgres"
 
+# Get base64 decode option that works on this system
+BASE64_DECODE_OPT=$(base64 --help 2>&1 | grep -q "\-\-decode" && echo "--decode" || echo "-d")
+
 # Get password from Kubernetes secret
-POSTGRES_PASSWORD=$(kubectl get secret -n postgresql $POSTGRES_SECRET_NAME -o jsonpath="{.data.$POSTGRES_SECRET_KEY}" | base64 --decode)
+echo "Retrieving PostgreSQL password from secret..."
+POSTGRES_PASSWORD=$(kubectl get secret -n postgresql $POSTGRES_SECRET_NAME -o jsonpath="{.data.$POSTGRES_SECRET_KEY}" | base64 $BASE64_DECODE_OPT)
+
+if [ -z "$POSTGRES_PASSWORD" ]; then
+  echo -e "${RED}Failed to retrieve password from secret.${NC}"
+  echo "Checking secret existence and key name..."
+  kubectl get secret -n postgresql $POSTGRES_SECRET_NAME -o yaml
+  echo -e "${YELLOW}Using default password as fallback.${NC}"
+  POSTGRES_PASSWORD="postgres"
+fi
 
 echo "Checking PostgreSQL setup..."
 echo "============================"
@@ -43,10 +55,16 @@ fi
 # Test the connection with nc (netcat) if available
 if command -v nc &> /dev/null; then
   echo "Testing connection with netcat..."
-  if nc -z -v -w5 $NODE_IP $POSTGRES_PORT 2>&1; then
+  if nc -z -v -w5 localhost $POSTGRES_PORT 2>&1; then
     echo -e "${GREEN}Port is open and accessible.${NC}"
   else
-    echo -e "${RED}Cannot connect to $NODE_IP:$POSTGRES_PORT - port may be closed.${NC}"
+    echo -e "${RED}Cannot connect to localhost:$POSTGRES_PORT - port may be closed.${NC}"
+    echo "Trying with $NODE_IP instead..."
+    if nc -z -v -w5 $NODE_IP $POSTGRES_PORT 2>&1; then
+      echo -e "${GREEN}Port is open and accessible on $NODE_IP.${NC}"
+    else
+      echo -e "${RED}Cannot connect to $NODE_IP:$POSTGRES_PORT - port may be closed.${NC}"
+    fi
   fi
 fi
 
@@ -63,21 +81,38 @@ export PGDATABASE=$POSTGRES_DB
 echo "Attempting to connect to PostgreSQL with: psql -h $PGHOST -p $PGPORT -U $PGUSER -d $PGDATABASE"
 
 # Try psql with -c to test connection
-psql -c "SELECT version();" || {
-  echo -e "${RED}Failed to connect to PostgreSQL.${NC}"
-  echo "Let's try to access PostgreSQL from inside the cluster using kubectl..."
+if ! psql -c "SELECT version();"; then
+  echo -e "${RED}Failed to connect to PostgreSQL with localhost.${NC}"
+  echo "Trying with node IP instead..."
   
-  POSTGRES_POD=$(kubectl get pods -n postgresql -l app.kubernetes.io/name=postgresql -o jsonpath='{.items[0].metadata.name}')
-  echo "PostgreSQL pod: $POSTGRES_POD"
-  
-  echo "Testing database connectivity from within the pod..."
-  kubectl exec -n postgresql $POSTGRES_POD -- bash -c "PGPASSWORD=postgres psql -U postgres -c 'SELECT version();'"
-  
-  echo -e "${RED}The database is accessible from inside the cluster but not from outside.${NC}"
-  echo -e "${RED}This may be due to network policies or incorrect NodePort configuration.${NC}"
-  
-  exit 1
-}
+  export PGHOST=$NODE_IP
+  if ! psql -c "SELECT version();"; then
+    echo -e "${RED}Failed to connect to PostgreSQL.${NC}"
+    echo "Let's try to access PostgreSQL from inside the cluster using kubectl..."
+    
+    POSTGRES_POD=$(kubectl get pods -n postgresql -l app.kubernetes.io/name=postgresql -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    if [ -z "$POSTGRES_POD" ]; then
+      POSTGRES_POD=$(kubectl get pods -n postgresql -o jsonpath='{.items[0].metadata.name}')
+    fi
+    echo "PostgreSQL pod: $POSTGRES_POD"
+    
+    echo "Getting the actual password from inside the pod..."
+    POD_PASSWORD=$(kubectl exec -n postgresql $POSTGRES_POD -- bash -c "echo \$POSTGRES_PASSWORD" 2>/dev/null || echo "")
+    
+    if [ -n "$POD_PASSWORD" ]; then
+      echo -e "${YELLOW}Using password from inside the pod.${NC}"
+      PGPASSWORD=$POD_PASSWORD
+    fi
+    
+    echo "Testing database connectivity from within the pod..."
+    kubectl exec -n postgresql $POSTGRES_POD -- bash -c "PGPASSWORD=$PGPASSWORD psql -U postgres -c 'SELECT version();'" || true
+    
+    echo -e "${RED}The database might not be accessible from outside the cluster.${NC}"
+    echo -e "${RED}This may be due to network policies or incorrect NodePort configuration.${NC}"
+    
+    exit 1
+  fi
+fi
 
 psql << EOF
 -- Check if table exists and drop it if it does

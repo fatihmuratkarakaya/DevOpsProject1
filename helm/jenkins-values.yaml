@@ -54,12 +54,12 @@ controller:
                     scm {
                       git {
                         remote {
-                          url('https://github.com/fatihmuratkarakaya/test.git')
+                          url('https://github.com/fatihmuratkarakaya/DevOpsProject1.git')
                         }
                         branch('*/main')
                       }
                     }
-                    scriptPath('Jenkinsfile-postgresql')
+                    scriptPath('./jenkins/Jenkinsfile-postgresql')
                   }
                 }
               }
@@ -73,12 +73,12 @@ controller:
                     scm {
                       git {
                         remote {
-                          url('https://github.com/fatihmuratkarakaya/test.git')
+                          url('https://github.com/fatihmuratkarakaya/DevOpsProject1.git')
                         }
                         branch('*/main')
                       }
                     }
-                    scriptPath('Jenkinsfile-redis')
+                    scriptPath('./jenkins/Jenkinsfile-redis')
                   }
                 }
               }              

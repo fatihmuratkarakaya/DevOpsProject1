@@ -8,3 +8,4 @@
 *.key
 kubeconfig
 .kube/
+*secret*

@@ -21,7 +21,7 @@ echo "============================"
 echo "Connection details:"
 echo "  Host: $REDIS_HOST"
 echo "  Port: $REDIS_PORT"
-echo "  Password: ********" # Don't print the actual password
+echo "  Password: ********" 
 echo "============================"
 
 # Check if Redis CLI is installed

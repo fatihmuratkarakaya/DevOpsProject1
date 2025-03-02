@@ -145,7 +145,7 @@ EOL
                 container('kubectl-helm') {
                     sh '''
                         # Wait for PostgreSQL to be ready
-                        kubectl rollout status statefulset/postgresql-primary -n postgresql || true
+                        kubectl rollout status statefulset/postgresql -n postgresql || true
                         
                         echo "PostgreSQL is accessible at: localhost:30001"
                         echo "Username: postgres"

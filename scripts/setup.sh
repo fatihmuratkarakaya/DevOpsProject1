@@ -10,7 +10,7 @@ echo -e "${BLUE}Starting Kubernetes Environment Setup...${NC}"
 
 # Step 1: Install dependencies
 echo -e "${GREEN}Installing dependencies...${NC}"
-chmod +x ./scripts/install_dependencies.sh
+chmod +x ./scripts/*.sh
 ./scripts/install_dependencies.sh
 
 # Step 2: Set up KIND cluster using Terraform

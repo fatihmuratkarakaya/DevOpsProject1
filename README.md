@@ -27,12 +27,19 @@ The system architecture consists of:
    cd DevOpsProject1
    ```
 
-2. Run the setup script:
+2. Run the install dependencies script:
+   ```bash
+   ./scripts/install_dependencies.sh
+   ```
+!!! warning "Warning"
+    Do not forget to log-out - log-in before continue
+
+3. Run the setup script:
    ```bash
    ./scripts/setup.sh
    ```
 
-3. Access services:
+4. Access services:
    - Jenkins: http://localhost:30000 (credentials provided after setup)
    - PostgreSQL: localhost:30001
    - Redis: localhost:30002

@@ -8,10 +8,9 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}Starting Kubernetes Environment Setup...${NC}"
 
-# Step 1: Install dependencies
-echo -e "${GREEN}Installing dependencies...${NC}"
+# Step 1: Add execute permission to files inside scripts folder
+echo -e "${GREEN}Giving Permissions...${NC}"
 chmod +x ./scripts/*.sh
-./scripts/install_dependencies.sh
 
 # Step 2: Set up KIND cluster using Terraform
 echo -e "${GREEN}Setting up KIND cluster with Terraform...${NC}"

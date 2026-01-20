@@ -46,9 +46,10 @@ EOF
 
 
 # Generate random passwords
-echo -e "${GREEN}Setting up secrets for databases...${NC}"
+echo -e "${GREEN}Setting up secrets for databases and Jenkins...${NC}"
 POSTGRES_PASSWORD=$(openssl rand -base64 16)
 REDIS_PASSWORD=$(openssl rand -base64 16)
+JENKINS_PASSWORD=$(openssl rand -base64 20)
 
 # Create namespaces
 kubectl create namespace postgresql --dry-run=client -o yaml | kubectl apply -f -
@@ -62,6 +63,12 @@ kubectl create secret generic postgresql-secret \
 kubectl create secret generic redis-secret \
   --namespace redis \
   --from-literal=redis-password=$REDIS_PASSWORD
+
+# Create Jenkins admin secret
+kubectl create secret generic jenkins-admin-secret \
+  --namespace jenkins \
+  --from-literal=jenkins-admin-user=admin \
+  --from-literal=jenkins-admin-password=$JENKINS_PASSWORD
 
 # Store a reference to secrets for check scripts
 cat > scripts/secrets-reference.sh << EOF
@@ -89,7 +96,7 @@ kubectl rollout status statefulset/jenkins -n jenkins
 
 # Step 7: Get Jenkins admin password and provide access information
 echo -e "${GREEN}Retrieving Jenkins admin credentials...${NC}"
-JENKINS_PASS=$(kubectl exec -n jenkins jenkins-0 -c jenkins -- /bin/cat /run/secrets/additional/chart-admin-password 2>/dev/null || echo "admin")
+JENKINS_PASS=$JENKINS_PASSWORD
 JENKINS_PORT=30000
 
 echo -e "${BLUE}====================${NC}"
@@ -104,7 +111,9 @@ echo -e "${BLUE}2. Redis deployment: http://localhost:$JENKINS_PORT/job/redis-de
 echo -e "${BLUE}====================${NC}"
 echo -e "${BLUE}After deployment, you can verify your databases:${NC}"
 echo -e "${BLUE}- PostgreSQL: ./scripts/check_postgresql.sh${NC}"
-echo -e "${BLUE}  Available at: localhost:30001 (user: postgres, password: postgres)${NC}"
+echo -e "${BLUE}  Available at: localhost:30001 (user: postgres, password: stored in Kubernetes secret)${NC}"
 echo -e "${BLUE}- Redis: ./scripts/check_redis.sh${NC}"
-echo -e "${BLUE}  Available at: localhost:30002 (password: redis)${NC}"
+echo -e "${BLUE}  Available at: localhost:30002 (password: stored in Kubernetes secret)${NC}"
+echo -e "${BLUE}====================${NC}"
+echo -e "${BLUE}Note: All passwords are randomly generated and stored securely in Kubernetes secrets.${NC}"
 echo -e "${BLUE}====================${NC}"

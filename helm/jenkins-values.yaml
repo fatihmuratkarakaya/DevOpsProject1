@@ -2,7 +2,9 @@ controller:
   serviceType: NodePort
   nodePort: 30000
   admin:
-    password: "admin"
+    existingSecret: "jenkins-admin-secret"
+    userKey: "jenkins-admin-user"
+    passwordKey: "jenkins-admin-password"
   
   JCasC:
     configScripts:
